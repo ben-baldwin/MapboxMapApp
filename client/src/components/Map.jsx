@@ -6,7 +6,6 @@ import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import axios from 'axios'
 import campSites from '../data/tourismCampSites.geojson';
 import BasemapButton from './BasemapButton';
-// import campGround from '../assets/campGround.png'
 
 // make an env variable
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmVuYmFsZHdpbjU1IiwiYSI6ImNsZ2pwbXJhcjBwZWozZnA0dWFkZ3YydGMifQ.27A8k4rZf87cluG99yfaGw';
@@ -64,7 +63,6 @@ const Map = () => {
       addSources(['campSites']);
       addLayers(['campSites']);
       addEventListeners();
-      // getGeoCoder();
     })
     setLoaded(true)
   }, []);
@@ -75,7 +73,6 @@ const Map = () => {
       const properties = e.features[0].properties;
       const coordinates = e.features[0].geometry.coordinates.slice();
       setEnd(coordinates);
-      // console.log(end);
       let description = '';
 
       if ('name' in properties) {
@@ -90,14 +87,12 @@ const Map = () => {
   }
 
   const addSources = (sourcesIDs) => {
-    // console.log(MAP_SOURCES);
     sourcesIDs.forEach(sourceID => {
       map.current.addSource(sourceID, MAP_SOURCES[sourceID])
     })
   }
 
   const addLayers = (layersIDs) => {
-    // console.log(MAP_LAYERS);
     layersIDs.forEach(layerID => {
       map.current.addLayer(MAP_LAYERS[layerID])
     })
@@ -116,7 +111,6 @@ const Map = () => {
   const handleLayerToggle = (e) => {
     e.preventDefault();
     setCampLayer(!campLayer);
-    // console.log(campLayer);
   }
 
   const handleBasemapChange = (e) => {
@@ -140,7 +134,6 @@ const Map = () => {
 
   const handleGeoCodeSelection = (coordinates) => {
     setStart(coordinates)
-    // console.log(start);
   }
 
   const getGeoCoder = (searchTerm) => {
@@ -156,7 +149,6 @@ const Map = () => {
   const getNavigation = () => {
     axios.get(`https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`)
       .then(response => {
-        // let { navigation } = res.data
         console.log(response);
       })
       .catch(error => {
@@ -170,6 +162,7 @@ const Map = () => {
     <div className='flex flex-col h-full w-full relative flex-1 z-10'>
 
       {/* Map Layer Accordion */}
+
       <div className='w-full max-w-lg absolute top-8 left-8 bg-slate-400 shadow-xl p-2 rounded-md z-10'>
         <div>
           <label className="relative inline-flex items-center mr-5 cursor-pointer">
@@ -187,7 +180,6 @@ const Map = () => {
             <input type='text' onChange={handleInputChange}></input>
             {
               geoData.map(item => (
-                // console.log(item.geometry.coordinates)
                 <button onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates)} className='text-start' key={item.id}>{item.place_name}</button>
               ))
             }
@@ -195,7 +187,9 @@ const Map = () => {
           </div>
         )}
       </div>
+
       {/* Basemap Selector' */}
+
       <div className='w-full max-w-lg absolute bottom-8 left-8 space-x-2 z-10'>
         <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" submitFunction={handleBasemapChange} />
         <BasemapButton layerParameter="light-v11" buttonText="Light" submitFunction={handleBasemapChange} />
@@ -204,7 +198,9 @@ const Map = () => {
         <BasemapButton layerParameter="navigation-night-v1" buttonText="Night Nav" submitFunction={handleBasemapChange} />
         <BasemapButton layerParameter="streets-v12" buttonText="Mapbox Streets" submitFunction={handleBasemapChange} />
       </div>
+
       {/* Map Component */}
+
       <div ref={mapContainer} className="App flex-1">
       </div>
     </div>
