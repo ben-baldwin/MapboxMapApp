@@ -152,11 +152,12 @@ const Map = () => {
 
 
   return (
-    <div className='flex flex-col h-full w-full relative flex-1 z-10'>
+    <div ref={mapContainer} className='flex flex-col h-full w-full relative flex-1 z-10'>
 
       {/* Map Layer Accordion */}
 
-      <div className='w-full max-w-lg absolute top-8 left-8 bg-slate-400 shadow-xl p-2 rounded-md z-10'>
+      <div className='w-full h-full max-w-lg bg-zinc-800 shadow-xl p-4 z-10'>
+        {/* Camp Sites toggle */}
         <div>
           <label className="relative inline-flex items-center mr-5 cursor-pointer">
             <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
@@ -164,38 +165,40 @@ const Map = () => {
             <input type="checkbox" value="" onClick={handleLayerToggle} className="sr-only peer"></input>
           </label>
         </div>
-        <div className='flex justify-between' onClick={toggleAccordian}>
+        {/* <div className='flex justify-between' onClick={toggleAccordian}>
           <p className='font-bold select-none'>Turn By Turn Navigation</p>
           <span className='font-bold select-none'>{isOpen ? '-' : '+'}</span>
-        </div>
-        {isOpen && (
-          <div className='flex flex-col p-2 w-full max-w-lg'>
-            <input type='text' onChange={handleInputChange}></input>
+        </div> */}
+        {/* {isOpen && ( */}
+        <form className='bg-zinc-200 rounded-lg'>
+          <div className='flex flex-col p-2 gap-2 w-full max-w-lg'>
+            <input type='text' className='rounded bg-lime-200 p-1 text-lg text-neutral-600 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700' placeholder='Address, City, POI' onChange={handleInputChange}></input>
             {
               geoData.map(item => (
-                <button onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates)} className='text-start' key={item.id}>{item.place_name}</button>
+                <button className='text-start' onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates)} key={item.id}>{item.place_name}</button>
               ))
             }
-            <button onClick={getNavigation}>Get Directions</button>
+            <button className='bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 rounded-lg text-sm px-5 py-2.5 text-center font-semibold text-neutral-600' onClick={getNavigation}>Get Directions</button>
           </div>
-        )}
-      </div>
+        </form>
+        {/* )} */}
 
-      {/* Basemap Selector' */}
+        {/* Basemap Selector' */}
 
-      <div className='w-full max-w-lg absolute bottom-8 left-8 space-x-2 z-10'>
-        <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" submitFunction={handleBasemapChange} />
-        <BasemapButton layerParameter="light-v11" buttonText="Light" submitFunction={handleBasemapChange} />
-        <BasemapButton layerParameter="dark-v11" buttonText="Dark" submitFunction={handleBasemapChange} />
-        <BasemapButton layerParameter="navigation-day-v1" buttonText="Day Nav" submitFunction={handleBasemapChange} />
-        <BasemapButton layerParameter="navigation-night-v1" buttonText="Night Nav" submitFunction={handleBasemapChange} />
-        <BasemapButton layerParameter="streets-v12" buttonText="Mapbox Streets" submitFunction={handleBasemapChange} />
+        <div className='w-full max-w-lg absolute bottom-8 left-8 space-x-2 z-10'>
+          <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" submitFunction={handleBasemapChange} />
+          <BasemapButton layerParameter="light-v11" buttonText="Light" submitFunction={handleBasemapChange} />
+          <BasemapButton layerParameter="dark-v11" buttonText="Dark" submitFunction={handleBasemapChange} />
+          <BasemapButton layerParameter="navigation-day-v1" buttonText="Day Nav" submitFunction={handleBasemapChange} />
+          <BasemapButton layerParameter="navigation-night-v1" buttonText="Night Nav" submitFunction={handleBasemapChange} />
+          <BasemapButton layerParameter="streets-v12" buttonText="Mapbox Streets" submitFunction={handleBasemapChange} />
+        </div>
       </div>
 
       {/* Map Component */}
 
-      <div ref={mapContainer} className="App flex-1">
-      </div>
+      {/* <div ref={mapContainer} className="App flex-1">
+      </div> */}
     </div>
   )
 }
