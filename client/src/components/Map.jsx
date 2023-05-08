@@ -51,13 +51,6 @@ const Map = () => {
       zoom: 4
     });
 
-    map.current.addControl(
-      new MapboxGeocoder({
-        accessToken: mapboxgl.accessToken,
-        mapboxgl: mapboxgl
-      })
-    );
-
     // Render GeoJSON data as a map layer
     map.current.on('style.load', () => {
       addSources(['campSites']);
