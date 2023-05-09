@@ -40,12 +40,13 @@ const Map = () => {
   const map = useRef();
   const popupRef = useRef();
   const [campLayer, setCampLayer] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
+  // const [isOpen, setIsOpen] = useState(false);
   const [basemap, setBasemap] = useState(false);
   const [loaded, setLoaded] = useState(false);
-  const [start, setStart] = useState([])
-  const [end, setEnd] = useState([])
-  const [geoData, setGeoData] = useState([])
+  const [start, setStart] = useState([]);
+  const [end, setEnd] = useState([]);
+  const [geoData, setGeoData] = useState([]);
+  const [routeInstructions, setRouteInstructions] = useState([]);
 
   // Initialize the map when the component mounts
   useEffect(() => {
@@ -69,6 +70,7 @@ const Map = () => {
     map.current.on('click', 'campSites', (e) => {
       // copy coordinates array
       const properties = e.features[0].properties;
+      console.log(properties);
       const coordinates = e.features[0].geometry.coordinates.slice();
       setEnd(coordinates);
       let description = '';
@@ -135,6 +137,7 @@ const Map = () => {
       .then(response => {
         const { features } = response.data
         setGeoData(features);
+        console.log(geoData);
       })
       .catch(error => {
         console.log(error);
@@ -143,7 +146,44 @@ const Map = () => {
   const getNavigation = () => {
     axios.get(`https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`)
       .then(response => {
-        console.log(response);
+        // console.log(response.data);
+        setRouteInstructions(response.data.routes[0].legs[0].steps)
+        console.log(routeInstructions);
+        // console.log(response.data.routes[0].legs[0].steps);
+        const data = response.data.routes[0]
+        const route = response.data.routes[0].geometry.coordinates;
+        // const geojson = {
+        //   type: 'feature',
+        //   properties: {},
+        //   geometry: {
+        //     type: 'lineString',
+        //     coordinates: route
+        //   }
+        // };
+        // // if the route already exists on the map, we'll reset it using setData
+        // if (map.current.getSource('route')) {
+        //   map.getSource('route').setData(geojson);
+        // }
+        // // otherwise, we'll make a new request
+        // else {
+        //   map.current.addLayer({
+        //     id: 'route',
+        //     type: 'line',
+        //     source: {
+        //       type: 'geojson',
+        //       data: geojson
+        //     },
+        //     layout: {
+        //       'line-join': 'round',
+        //       'line-cap': 'round'
+        //     },
+        //     paint: {
+        //       'line-color': '#3887be',
+        //       'line-width': 5,
+        //       'line-opacity': 0.75
+        //     }
+        //   });
+        // }
       })
       .catch(error => {
         console.log(error);
@@ -182,14 +222,23 @@ const Map = () => {
               <button className='text-start text-lg text-lime-200' onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates)} key={item.id}>{item.place_name}</button>
             ))
           }
-          <button className='bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600' onClick={getNavigation}>Get Directions</button>
+          <button className='bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600'
+            onClick={getNavigation}>Get Directions
+          </button>
+          <div className='w-full'>
+            {
+              routeInstructions.map((instructionsObject, index) => (
+                <p key={index}>{instructionsObject.maneuver.instruction}</p>
+              ))
+            }
+          </div>
         </div>
         {/* )} */}
 
         {/* Basemap Selector' */}
 
         <div className='w-full flex justify-between max-w-md absolute bottom-8 left-8 mb-4'>
-          <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange}/>
+          <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
           {/* <BasemapButton layerParameter="light-v11" buttonText="Light" submitFunction={handleBasemapChange} /> */}
           <BasemapButton layerParameter="dark-v11" buttonText="Dark" submitFunction={handleBasemapChange} img={darkImg} />
           <BasemapButton layerParameter="navigation-day-v1" buttonText="Day Nav" img={dayNav} submitFunction={handleBasemapChange} />
