@@ -137,7 +137,7 @@ const Map = () => {
       .then(response => {
         const { features } = response.data
         setGeoData(features);
-        console.log(geoData);
+        // console.log(geoData);
       })
       .catch(error => {
         console.log(error);
@@ -149,7 +149,6 @@ const Map = () => {
         // console.log(response.data);
         setRouteInstructions(response.data.routes[0].legs[0].steps)
         console.log(routeInstructions);
-        // console.log(response.data.routes[0].legs[0].steps);
         const data = response.data.routes[0]
         const route = response.data.routes[0].geometry.coordinates;
         // const geojson = {
@@ -225,13 +224,21 @@ const Map = () => {
           <button className='bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600'
             onClick={getNavigation}>Get Directions
           </button>
-          <div className='w-full'>
-            {
-              routeInstructions.map((instructionsObject, index) => (
-                <p key={index}>{instructionsObject.maneuver.instruction}</p>
-              ))
-            }
-          </div>
+          {
+            routeInstructions.map((instructionsObject, index) => (
+              <div className='w-full flex justify-between'>
+                <p className='text-lg text-lime-200' key={index}>{instructionsObject.maneuver.instruction}</p>
+                {
+                  ((instructionsObject.distance * 3.28084).toFixed(2) === '0.00') ? null :
+                  ((instructionsObject.distance * 0.00062137).toFixed(2) > 1) ?
+                  // distance in miles
+                    <p className='text-lg text-lime-200'>{(instructionsObject.distance * 0.00062137).toFixed(2)} miles</p> :
+                    // distance in feet
+                    <p className='text-lg text-lime-200'>{(instructionsObject.distance * 3.28084).toFixed(0)} feet</p>
+                }
+              </div>
+            ))
+          }
         </div>
         {/* )} */}
 
