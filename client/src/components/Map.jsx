@@ -11,6 +11,8 @@ import dayNav from '../assets/dayNav.png'
 import defaultMapbox from '../assets/defaultMapbox.png'
 import nightNav from '../assets/nightNav.png'
 import satellite from '../assets/satellite.png'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faCar } from '@fortawesome/free-solid-svg-icons';
 
 // make an env variable
 mapboxgl.accessToken = 'pk.eyJ1IjoiYmVuYmFsZHdpbjU1IiwiYSI6ImNsZ2pwbXJhcjBwZWozZnA0dWFkZ3YydGMifQ.27A8k4rZf87cluG99yfaGw';
@@ -46,7 +48,9 @@ const Map = () => {
   const [start, setStart] = useState([]);
   const [end, setEnd] = useState([]);
   const [geoData, setGeoData] = useState([]);
-  const [routeInstructions, setRouteInstructions] = useState([]);
+  const [routeDirections, setRouteDirections] = useState([]);
+  const [routeDistance, setRouteDistance] = useState([]);
+  const [routeDuration, setRouteDuration] = useState([]);
 
   // Initialize the map when the component mounts
   useEffect(() => {
@@ -147,8 +151,12 @@ const Map = () => {
     axios.get(`https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`)
       .then(response => {
         // console.log(response.data);
-        setRouteInstructions(response.data.routes[0].legs[0].steps)
-        console.log(routeInstructions);
+        setRouteDirections(response.data.routes[0].legs[0].steps)
+        setRouteDistance(response.data.routes[0].distance)
+        setRouteDuration(response.data.routes[0].duration)
+        console.log(response.data.routes[0].duration);
+        // console.log(routeDirections);
+        // console.log(response.data.routes[0].legs[0]);
         const data = response.data.routes[0]
         const route = response.data.routes[0].geometry.coordinates;
         // const geojson = {
@@ -200,45 +208,52 @@ const Map = () => {
         {/* Camp Sites toggle */}
         <div className='p-2'>
           <label className="relative inline-flex items-center mr-5 cursor-pointer">
-            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
-            <span className="ml-3 text-sm font-medium text-gray-900 dark:text-gray-300 select-none">Camp Sites</span>
+            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
+            </div>
+            <span className="ml-3 text-lg text-lime-200 select-none">Camp Sites</span>
             <input type="checkbox" value="" onClick={handleLayerToggle} className="sr-only peer"></input>
           </label>
         </div>
-        {/* <div className='flex justify-between' onClick={toggleAccordian}>
-          <p className='font-bold select-none'>Turn By Turn Navigation</p>
-          <span className='font-bold select-none'>{isOpen ? '-' : '+'}</span>
-        </div> */}
-        {/* {isOpen && ( */}
         <div className='flex flex-col p-2 gap-2 w-full max-w-lg'>
           <input type='text'
             className='rounded bg-lime-200 p-1 text-lg focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 placeholder-neutral-600'
             placeholder='Address, City, POI'
             onChange={handleInputChange}>
           </input>
-          {
-            geoData.map(item => (
-              <button className='text-start text-lg text-lime-200' onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates)} key={item.id}>{item.place_name}</button>
-            ))
-          }
+          <div className='bg-zinc-600 shadow-md rounded-md'>
+            {
+              geoData.map(item => (
+                <button className='text-start w-full text-lg text-lime-200 p-2 hover:bg-zinc-700' onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates)} key={item.id}>{item.place_name}</button>
+              ))
+            }
+          </div>
           <button className='bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600'
             onClick={getNavigation}>Get Directions
           </button>
-          {
-            routeInstructions.map((instructionsObject, index) => (
-              <div className='w-full flex justify-between'>
-                <p className='text-lg text-lime-200' key={index}>{instructionsObject.maneuver.instruction}</p>
-                {
-                  ((instructionsObject.distance * 3.28084).toFixed(2) === '0.00') ? null :
-                  ((instructionsObject.distance * 0.00062137).toFixed(2) > 1) ?
-                  // distance in miles
-                    <p className='text-lg text-lime-200'>{(instructionsObject.distance * 0.00062137).toFixed(2)} miles</p> :
-                    // distance in feet
-                    <p className='text-lg text-lime-200'>{(instructionsObject.distance * 3.28084).toFixed(0)} feet</p>
-                }
-              </div>
-            ))
-          }
+          <div className='w-full max-h-16 bg-zinc-600 shadow-md rounded-md p-2'>
+            <div className='flex space-x-20 text-teal-200 text-lg'>
+              <FontAwesomeIcon icon={faCar} style={{ color: "#99f6e4", fontSize: '1.5em' }} />
+              <p>Time: {(routeDuration / 3600).toFixed(2)} hrs</p>
+              <p>Distance: {(routeDistance * 0.00062137).toFixed(2)} mi</p>
+            </div>
+          </div>
+          <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-md rounded-md'>
+            {
+              routeDirections.map((directionsObject, index) => (
+                <div className='w-full flex justify-between hover:bg-zinc-700 p-2 px-4'>
+                  <p className='text-lg text-lime-200' key={index}>{directionsObject.maneuver.instruction}</p>
+                  {
+                    ((directionsObject.distance * 3.28084).toFixed(2) === '0.00') ? null :
+                      ((directionsObject.distance * 0.00062137).toFixed(2) > .75) ?
+                        // distance in miles
+                        <p className='text-lg text-lime-200 min-w-max'>{(directionsObject.distance * 0.00062137).toFixed(2)} mi</p> :
+                        // distance in feet
+                        <p className='text-lg text-lime-200 min-w-max'>{(directionsObject.distance * 3.28084).toFixed(0)} ft</p>
+                  }
+                </div>
+              ))
+            }
+          </div>
         </div>
         {/* )} */}
 
