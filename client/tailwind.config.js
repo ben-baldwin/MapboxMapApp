@@ -10,5 +10,7 @@ module.exports = {
       body: ["Roboto Slab"]
     }
   },
-  plugins: [],
+  plugins: [
+    require('tailwind-scrollbar')
+  ],
 }
