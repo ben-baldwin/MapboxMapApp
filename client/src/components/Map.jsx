@@ -20,21 +20,63 @@ mapboxgl.accessToken = 'pk.eyJ1IjoiYmVuYmFsZHdpbjU1IiwiYSI6ImNsZ2pwbXJhcjBwZWozZ
 const MAP_SOURCES = {
   campSites: {
     type: 'geojson',
-    data: campSites
+    data: campSites,
+    cluster: true,
+    clusterMaxZoom: 14, // max zoom to cluster points on
+    clusterRadius: 50 // Radius of each cluster when clustering points (50 is default)
   }
 }
 
 const MAP_LAYERS = {
   campSites: {
-    id: 'campSites',
+    id: 'clusters',
     source: 'campSites',
+    filter: ['has', 'point_count'],
     type: 'circle',
     paint: {
-      'circle-radius': 6,
-      'circle-color': 'blue'
+      'circle-color': [
+        'step',
+        ['get', 'point_count'],
+        '#d9f99d',
+        100,
+        '#B9F8C1',
+        750,
+        '#99f6e4'
+      ],
+      'circle-radius': [
+        'step',
+        ['get', 'point_count'],
+        20,
+        100,
+        30,
+        750,
+        40
+      ]
+    }
+  },
+  clusterCount: {
+    id: 'cluster-count',
+    type: 'symbol',
+    source: 'campSites',
+    filter: ['has', 'point_count'],
+    layout: {
+      'text-field': ['get', 'point_count_abbreviated'],
+      'text-font': ['DIN Offc Pro Medium', 'Arial Unicode MS Bold'],
+      'text-size': 12
+    }
+  },
+  unclusteredPoint: {
+    id: 'unclustered-point',
+    type: 'circle',
+    source: 'campSites',
+    filter: ['!', ['has', 'point_count']],
+    paint: {
+      'circle-color': '#11b4da',
+      'circle-radius': 4,
+      'circle-stroke-width': 1,
+      'circle-stroke-color': '#fff'
     }
   }
-
 }
 
 const Map = () => {
@@ -64,17 +106,37 @@ const Map = () => {
     // Render GeoJSON data as a map layer
     map.current.on('style.load', () => {
       addSources(['campSites']);
-      addLayers(['campSites']);
+      addLayers(['campSites', 'clusterCount', 'unclusteredPoint']);
       addEventListeners();
     })
     setLoaded(true)
   }, []);
 
   const addEventListeners = (e) => {
-    map.current.on('click', 'campSites', (e) => {
-      // copy coordinates array
+    // map.current.on('click', 'campSites', (e) => {
+    // copy coordinates array
+    // const properties = e.features[0].properties;
+    // console.log(properties);
+    // const coordinates = e.features[0].geometry.coordinates.slice();
+    // setEnd(coordinates);
+    //   let description = '';
+
+    //   if ('name' in properties) {
+    //     description = properties.name;
+    //   }
+
+    //   new mapboxgl.Popup()
+    //     .setLngLat(coordinates)
+    //     .setHTML(description)
+    //     .addTo(map.current)
+    // });
+    // When a click event occurs on a feature in
+    // the unclustered-point layer, open a popup at
+    // the location of the feature, with
+    // description HTML from its properties.
+    map.current.on('click', 'unclustered-point', (e) => {
       const properties = e.features[0].properties;
-      console.log(properties);
+      // console.log(properties);
       const coordinates = e.features[0].geometry.coordinates.slice();
       setEnd(coordinates);
       let description = '';
@@ -87,6 +149,24 @@ const Map = () => {
         .setLngLat(coordinates)
         .setHTML(description)
         .addTo(map.current)
+    });
+
+    // inspect a cluster on click
+    map.current.on('click', 'clusters', (e) => {
+      const features = map.current.queryRenderedFeatures(e.point, {
+        layers: ['clusters']
+      });
+      const clusterId = features[0].properties.cluster_id;
+      map.current.getSource('campSites').getClusterExpansionZoom(
+        clusterId,
+        (err, zoom) => {
+          if (err) return;
+          map.current.easeTo({
+            center: features[0].geometry.coordinates,
+            zoom: zoom
+          });
+        }
+      );
     });
   }
 
