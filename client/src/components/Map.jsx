@@ -42,7 +42,7 @@ const Map = () => {
   const map = useRef();
   const popupRef = useRef();
   const [campLayer, setCampLayer] = useState(true);
-  // const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [basemap, setBasemap] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [start, setStart] = useState([]);
@@ -136,6 +136,10 @@ const Map = () => {
     setStart(coordinates)
   }
 
+  const handleAccordion = () => {
+    setIsOpen(!isOpen)
+  }
+
   const getGeoCoder = (searchTerm) => {
     axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${searchTerm}.json?access_token=${mapboxgl.accessToken}`)
       .then(response => {
@@ -205,6 +209,17 @@ const Map = () => {
       {/* Map Layer Accordion */}
 
       <div className='w-full h-full max-w-lg bg-zinc-700 shadow-xl p-4 z-10'>
+        <div className='bg-zinc-600 rounded-md shadow-md m-2 text-lime-200 text-lg'>
+          <div className='flex justify-between items-center px-2' onClick={handleAccordion}>
+            <p className='m-2'>Instructions</p>
+            <p>{isOpen ? '-' : '+'}</p>
+          </div>
+          {isOpen && (
+            <div className='m-2'>
+              <p>First, using the address bar below, type in your current location. It can be as specific as your address or as broad as your city. Once you have selected the correct starting destination, explore the map and utilize the many basemap layers provided to find a campsite that you would like to visit. Once you have found a campsite, click on the campsite node. Now that you have your starting point and destination, select the "Get Directions" button to view turn by turn directions to the campsite! </p>
+            </div>
+          )}
+        </div>
         {/* Camp Sites toggle */}
         <div className='p-2'>
           <label className="relative inline-flex items-center mr-5 cursor-pointer">
