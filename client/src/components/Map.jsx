@@ -76,6 +76,30 @@ const MAP_LAYERS = {
       'circle-stroke-width': 1,
       'circle-stroke-color': '#fff'
     }
+  },
+  point: {
+    id: 'point',
+    type: 'circle',
+    source: {
+      type: 'geojson',
+      data: {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Point',
+              // coordinates: start
+            }
+          }
+        ]
+      }
+    },
+    paint: {
+      'circle-radius': 10,
+      'circle-color': '#3887be'
+    }
   }
 }
 
@@ -106,30 +130,13 @@ const Map = () => {
     // Render GeoJSON data as a map layer
     map.current.on('style.load', () => {
       addSources(['campSites']);
-      addLayers(['campSites', 'clusterCount', 'unclusteredPoint']);
+      addLayers(['campSites', 'clusterCount', 'unclusteredPoint', 'point']);
       addEventListeners();
     })
     setLoaded(true)
   }, []);
 
   const addEventListeners = (e) => {
-    // map.current.on('click', 'campSites', (e) => {
-    // copy coordinates array
-    // const properties = e.features[0].properties;
-    // console.log(properties);
-    // const coordinates = e.features[0].geometry.coordinates.slice();
-    // setEnd(coordinates);
-    //   let description = '';
-
-    //   if ('name' in properties) {
-    //     description = properties.name;
-    //   }
-
-    //   new mapboxgl.Popup()
-    //     .setLngLat(coordinates)
-    //     .setHTML(description)
-    //     .addTo(map.current)
-    // });
     // When a click event occurs on a feature in
     // the unclustered-point layer, open a popup at
     // the location of the feature, with
@@ -238,50 +245,52 @@ const Map = () => {
         setRouteDirections(response.data.routes[0].legs[0].steps)
         setRouteDistance(response.data.routes[0].distance)
         setRouteDuration(response.data.routes[0].duration)
-        console.log(response.data.routes[0].duration);
-        // console.log(routeDirections);
-        // console.log(response.data.routes[0].legs[0]);
         const data = response.data.routes[0]
         const route = response.data.routes[0].geometry.coordinates;
-        // const geojson = {
-        //   type: 'feature',
-        //   properties: {},
-        //   geometry: {
-        //     type: 'lineString',
-        //     coordinates: route
-        //   }
-        // };
+        const geojson = {
+          type: 'feature',
+          properties: {},
+          geometry: {
+            type: 'lineString',
+            coordinates: route
+          }
+        };
         // // if the route already exists on the map, we'll reset it using setData
-        // if (map.current.getSource('route')) {
-        //   map.getSource('route').setData(geojson);
-        // }
-        // // otherwise, we'll make a new request
-        // else {
-        //   map.current.addLayer({
-        //     id: 'route',
-        //     type: 'line',
-        //     source: {
-        //       type: 'geojson',
-        //       data: geojson
-        //     },
-        //     layout: {
-        //       'line-join': 'round',
-        //       'line-cap': 'round'
-        //     },
-        //     paint: {
-        //       'line-color': '#3887be',
-        //       'line-width': 5,
-        //       'line-opacity': 0.75
-        //     }
-        //   });
-        // }
+        if (map.current.getSource('route')) {
+          map.getSource('route').setData(geojson);
+        }
+        // otherwise, we'll make a new request
+        else {
+          map.current.addLayer({
+            id: 'route',
+            type: 'line',
+            source: {
+              type: 'geojson',
+              data: geojson
+            },
+            layout: {
+              'line-join': 'round',
+              'line-cap': 'round'
+            },
+            paint: {
+              'line-color': '#3887be',
+              'line-width': 5,
+              'line-opacity': 0.75
+            }
+          });
+        }
       })
       .catch(error => {
         console.log(error);
       });
   }
 
-
+// return (
+//   <div className='flex flex-col-reverse md:flex-row flex-1'>
+//     <div className='bg-red-500 w-full h-2/5 md:h-full md:w-3/5 lg:w-1/4'>test</div>
+//     <div className='bg-blue-500 w-full h-full' ref={mapContainer}></div>
+//   </div>
+// )
 
   return (
     <div className='flex h-full w-full relative flex-1 z-10'>
@@ -356,8 +365,7 @@ const Map = () => {
 
         <div className='w-full flex justify-between max-w-md absolute bottom-8 left-8 mb-4'>
           <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
-          {/* <BasemapButton layerParameter="light-v11" buttonText="Light" submitFunction={handleBasemapChange} /> */}
-          <BasemapButton layerParameter="dark-v11" buttonText="Dark" submitFunction={handleBasemapChange} img={darkImg} />
+          <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
           <BasemapButton layerParameter="navigation-day-v1" buttonText="Day Nav" img={dayNav} submitFunction={handleBasemapChange} />
           <BasemapButton layerParameter="navigation-night-v1" buttonText="Night Nav" img={nightNav} submitFunction={handleBasemapChange} />
           <BasemapButton layerParameter="streets-v12" buttonText="Default" img={defaultMapbox} submitFunction={handleBasemapChange} />
