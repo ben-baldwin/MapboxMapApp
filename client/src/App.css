@@ -55,3 +55,9 @@ body {
   display: flex;
   flex-direction: column;
 }
+
+.react-draggable {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+  user-select: none;
+}
