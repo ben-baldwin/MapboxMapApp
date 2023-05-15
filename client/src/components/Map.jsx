@@ -293,9 +293,9 @@ const Map = () => {
   }
 
   return (
-    <div className='flex flex-col-reverse md:flex-row flex-1'>
+    <div className='flex flex-col-reverse lg:flex-row flex-1'>
       {/* <Draggable handle=".handle"> */}
-      <div className='bg-zinc-500 w-full md:h-full md:w-3/5 lg:w-1/4 handle space-y-2 p-1'>
+      <div className='bg-zinc-500 w-full md:h-full lg:h-full lg:w-1/4 handle space-y-2 p-1 md:p-2'>
         {/* Address Input */}
         <div className='flex justify-between items-center'>
           <input type='text'
@@ -319,12 +319,7 @@ const Map = () => {
             onClick={getNavigation}>
             Get Directions
           </button>
-          {/* Trip Time and Distance Info */}
-          <div className='flex justify-between text-teal-200 text-sm w-full max-h-16 bg-zinc-600 shadow-lg rounded p-2'>
-            <FontAwesomeIcon icon={faCar} style={{ color: "#99f6e4", fontSize: '1.5em' }} />
-            <p>Time: {(routeDuration / 3600).toFixed(2)} hrs</p>
-            <p>Distance: {(routeDistance * 0.00062137).toFixed(2)} mi</p>
-          </div>
+
           {/* Turn by Turn Directions */}
           <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-lg rounded-md mt-1 mb-1'>
             {
@@ -342,14 +337,22 @@ const Map = () => {
                 </div>
               ))
             }
+            {routeDirections.length > 0 &&
+              /* Trip Time and Distance Info */
+              < div className='flex justify-between text-teal-200 text-sm w-full max-h-16 bg-zinc-600 shadow-lg rounded p-2'>
+                <FontAwesomeIcon icon={faCar} style={{ color: "#99f6e4", fontSize: '1.5em' }} />
+                <p>Time: {(routeDuration / 3600).toFixed(2)} hrs</p>
+                <p>Distance: {(routeDistance * 0.00062137).toFixed(2)} mi</p>
+              </div>
+            }
           </div>
           <div className='w-full h-full flex justify-between mb-4'>
-          <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
-          <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
-          <BasemapButton layerParameter="navigation-day-v1" buttonText="Day Nav" img={dayNav} submitFunction={handleBasemapChange} />
-          <BasemapButton layerParameter="navigation-night-v1" buttonText="Night Nav" img={nightNav} submitFunction={handleBasemapChange} />
-          <BasemapButton layerParameter="streets-v12" buttonText="Default" img={defaultMapbox} submitFunction={handleBasemapChange} />
-        </div>
+            <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
+            <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
+            <BasemapButton layerParameter="navigation-day-v1" buttonText="Nav" img={dayNav} submitFunction={handleBasemapChange} />
+            <BasemapButton layerParameter="navigation-night-v1" buttonText="Dark Nav" img={nightNav} submitFunction={handleBasemapChange} />
+            <BasemapButton layerParameter="streets-v12" buttonText="Default" img={defaultMapbox} submitFunction={handleBasemapChange} />
+          </div>
         </div>
       </div>
       {/* </Draggable> */}
