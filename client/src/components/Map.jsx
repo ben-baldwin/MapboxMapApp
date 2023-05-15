@@ -119,6 +119,7 @@ const Map = () => {
   const [routeDirections, setRouteDirections] = useState([]);
   const [routeDistance, setRouteDistance] = useState([]);
   const [routeDuration, setRouteDuration] = useState([]);
+  const [value, setValue] = useState('')
 
   // Initialize the map when the component mounts
   useEffect(() => {
@@ -216,13 +217,17 @@ const Map = () => {
     }
   }
 
-  const handleInputChange = (event) => {
+  const handleInputChange = (event, item) => {
     const searchTerm = event.target.value;
+    setValue(searchTerm) //update the value state with the users input
+    console.log(searchTerm);
     getGeoCoder(searchTerm);
   }
 
-  const handleGeoCodeSelection = (coordinates) => {
+  const handleGeoCodeSelection = (coordinates, item) => {
     setStart(coordinates)
+    setValue(item.place_name)
+    setGeoData([])
   }
 
   const handleAccordion = () => {
@@ -234,7 +239,7 @@ const Map = () => {
       .then(response => {
         const { features } = response.data
         setGeoData(features);
-        // console.log(geoData);
+        console.log(geoData);
       })
       .catch(error => {
         console.log(error);
@@ -290,57 +295,62 @@ const Map = () => {
   return (
     <div className='flex flex-col-reverse md:flex-row flex-1'>
       {/* <Draggable handle=".handle"> */}
-      <div className='bg-zinc-800 w-full md:h-full md:w-3/5 lg:w-1/4 handle space-y-2'>
+      <div className='bg-zinc-500 w-full md:h-full md:w-3/5 lg:w-1/4 handle space-y-2 p-1'>
         {/* Address Input */}
-        <div className='flex justify-between items-center' onClick={handleAccordion}>
+        <div className='flex justify-between items-center'>
           <input type='text'
-            className='w-full bg-lime-200 p-1 text-lg focus:ring-4 focus:outline-none placeholder-neutral-600'
+            className='w-full bg-zinc-100 p-1 text-lg focus:ring-4 focus:outline-none placeholder-neutral-600 rounded-sm shadow-lg'
             placeholder='Address, City, POI'
-            onChange={handleInputChange}>
+            onChange={handleInputChange}
+            value={value}>
           </input>
         </div>
-        {isOpen && (
-          // search results
-          <div className='space-y-2'>
-            <div className='bg-zinc-600 shadow-md rounded-md'>
-              {
-                geoData.map(item => (
-                  <button className='text-start w-full text-lg text-lime-200 p-2 hover:bg-zinc-700' onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates)} key={item.id}>{item.place_name}</button>
-                ))
-              }
-            </div>
-            {/* Get Directions Button */}
-            <button className='bg-gradient-to-r w-full from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600'
-              onClick={getNavigation}>Get Directions
-            </button>
-            {/* Trip Time and Distance Info */}
-            <div className='w-full max-h-16 bg-zinc-600 shadow-md rounded-md p-2'>
-              <div className='flex justify-between text-teal-200 text-sm'>
-                <FontAwesomeIcon icon={faCar} style={{ color: "#99f6e4", fontSize: '1.5em' }} />
-                <p>Time: {(routeDuration / 3600).toFixed(2)} hrs</p>
-                <p>Distance: {(routeDistance * 0.00062137).toFixed(2)} mi</p>
-              </div>
-            </div>
-            {/* Turn by Turn Directions */}
-            <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-md rounded-md'>
-              {
-                routeDirections.map((directionsObject, index) => (
-                  <div className='w-full flex justify-between hover:bg-zinc-700 p-2 px-4'>
-                    <p className='text-lg text-lime-200' key={index}>{directionsObject.maneuver.instruction}</p>
-                    {
-                      ((directionsObject.distance * 3.28084).toFixed(2) === '0.00') ? null :
-                        ((directionsObject.distance * 0.00062137).toFixed(2) > .75) ?
-                          // distance in miles
-                          <p className='text-lg text-lime-200 min-w-max'>{(directionsObject.distance * 0.00062137).toFixed(2)} mi</p> :
-                          // distance in feet
-                          <p className='text-lg text-lime-200 min-w-max'>{(directionsObject.distance * 3.28084).toFixed(0)} ft</p>
-                    }
-                  </div>
-                ))
-              }
-            </div>
+        {/* // search results */}
+        <div>
+          <div className='bg-zinc-600 shadow-lg rounded'>
+            {
+              geoData.map(item => (
+                <button className='text-start w-full text-lg text-lime-200 p-2 hover:bg-zinc-700' onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates, item)} key={item.id}>{item.place_name}</button>
+              ))
+            }
           </div>
-        )}
+          {/* Get Directions Button */}
+          <button className='bg-gradient-to-r w-full mb-2 from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600 shadow-lg'
+            onClick={getNavigation}>
+            Get Directions
+          </button>
+          {/* Trip Time and Distance Info */}
+          <div className='flex justify-between text-teal-200 text-sm w-full max-h-16 bg-zinc-600 shadow-lg rounded p-2'>
+            <FontAwesomeIcon icon={faCar} style={{ color: "#99f6e4", fontSize: '1.5em' }} />
+            <p>Time: {(routeDuration / 3600).toFixed(2)} hrs</p>
+            <p>Distance: {(routeDistance * 0.00062137).toFixed(2)} mi</p>
+          </div>
+          {/* Turn by Turn Directions */}
+          <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-lg rounded-md mt-1 mb-1'>
+            {
+              routeDirections.map((directionsObject, index) => (
+                <div className='w-full flex justify-between hover:bg-zinc-700 p-2 px-4'>
+                  <p className='text-lg text-lime-200' key={index}>{directionsObject.maneuver.instruction}</p>
+                  {
+                    ((directionsObject.distance * 3.28084).toFixed(2) === '0.00') ? null :
+                      ((directionsObject.distance * 0.00062137).toFixed(2) > .75) ?
+                        // distance in miles
+                        <p className='text-lg text-lime-200 min-w-max'>{(directionsObject.distance * 0.00062137).toFixed(2)} mi</p> :
+                        // distance in feet
+                        <p className='text-lg text-lime-200 min-w-max'>{(directionsObject.distance * 3.28084).toFixed(0)} ft</p>
+                  }
+                </div>
+              ))
+            }
+          </div>
+          <div className='w-full h-full flex justify-between mb-4'>
+          <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
+          <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
+          <BasemapButton layerParameter="navigation-day-v1" buttonText="Day Nav" img={dayNav} submitFunction={handleBasemapChange} />
+          <BasemapButton layerParameter="navigation-night-v1" buttonText="Night Nav" img={nightNav} submitFunction={handleBasemapChange} />
+          <BasemapButton layerParameter="streets-v12" buttonText="Default" img={defaultMapbox} submitFunction={handleBasemapChange} />
+        </div>
+        </div>
       </div>
       {/* </Draggable> */}
       {/* Map */}
