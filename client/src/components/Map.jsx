@@ -295,7 +295,7 @@ const Map = () => {
   return (
     <div className='flex flex-col-reverse lg:flex-row flex-1'>
       {/* <Draggable handle=".handle"> */}
-      <div className='bg-zinc-500 w-full md:h-full lg:h-full lg:w-1/4 handle space-y-2 p-1 md:p-2'>
+      <div className='bg-zinc-500 w-full flex flex-col flex-1 lg:h-full lg:w-1/4 handle space-y-2 p-1 md:p-2'>
         {/* Address Input */}
         <div className='flex justify-between items-center'>
           <input type='text'
@@ -306,22 +306,22 @@ const Map = () => {
           </input>
         </div>
         {/* // search results */}
-        <div>
+        <div className='flex flex-col flex-1'>
           <div className='bg-zinc-600 shadow-lg rounded'>
             {
-              geoData.map(item => (
+              geoData.slice(0,3).map(item => (
                 <button className='text-start w-full text-lg text-lime-200 p-2 hover:bg-zinc-700' onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates, item)} key={item.id}>{item.place_name}</button>
               ))
             }
           </div>
           {/* Get Directions Button */}
-          <button className='bg-gradient-to-r w-full mb-2 from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600 shadow-lg'
+          <button className='bg-gradient-to-r w-full mb-2 from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600 shadow-lg md:mt-2'
             onClick={getNavigation}>
             Get Directions
           </button>
 
           {/* Turn by Turn Directions */}
-          <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-lg rounded-md mt-1 mb-1'>
+          <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-lg rounded-md'>
             {
               routeDirections.map((directionsObject, index) => (
                 <div className='w-full flex justify-between hover:bg-zinc-700 p-2 px-4'>
@@ -346,7 +346,7 @@ const Map = () => {
               </div>
             }
           </div>
-          <div className='w-full h-full flex justify-between mb-4'>
+          <div className='w-full justify-evenly flex gap-2 overflow-x-scroll mt-auto'>
             <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
             <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
             <BasemapButton layerParameter="navigation-day-v1" buttonText="Nav" img={dayNav} submitFunction={handleBasemapChange} />
@@ -357,7 +357,7 @@ const Map = () => {
       </div>
       {/* </Draggable> */}
       {/* Map */}
-      <div className='bg-blue-500 w-full h-full' ref={mapContainer}></div>
+      <div className='bg-blue-500 w-full h-full max-h-[450px]' ref={mapContainer}></div>
     </div >
   )
 
