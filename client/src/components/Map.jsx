@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
 import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
 import axios from 'axios'
 import campSites from '../data/tourismCampSites.geojson';
@@ -13,7 +12,6 @@ import nightNav from '../assets/nightNav.png'
 import satellite from '../assets/satellite.png'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCar } from '@fortawesome/free-solid-svg-icons';
-import Draggable from 'react-draggable';
 
 
 // make an env variable
@@ -248,23 +246,46 @@ const Map = () => {
   const getNavigation = () => {
     axios.get(`https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`)
       .then(response => {
-        // console.log(response.data);
         setRouteDirections(response.data.routes[0].legs[0].steps)
         setRouteDistance(response.data.routes[0].distance)
         setRouteDuration(response.data.routes[0].duration)
         const data = response.data.routes[0]
         const route = response.data.routes[0].geometry.coordinates;
+        console.log(route);
+        const bounds = route.reduce(
+          (bbox, coord) => {
+            return [
+              [Math.min(bbox[0][0], coord[0]), Math.min(bbox[0][1], coord[1])],
+              [Math.max(bbox[1][0], coord[0]), Math.max(bbox[1][1], coord[1])]
+            ];
+          },
+          [[Infinity, Infinity], [-Infinity, -Infinity]]
+        );
+        console.log(bounds);
+
+        // calculate center of the bounds
+        const borderBounds = [
+          (bounds[0][0] + bounds[1][0]) / 2, //longitude
+          (bounds[0][1] + bounds[1][1]) / 2  //latitude
+        ];
+        
+        map.current.flyTo({
+          center: borderBounds,
+          zoom: 8,
+          essential: true //ensures smooth transition
+        });
+
         const geojson = {
-          type: 'feature',
-          properties: {},
+          type: 'Feature',
           geometry: {
-            type: 'lineString',
+            type: 'LineString',
             coordinates: route
-          }
+          },
+          properties: {},
         };
         // // if the route already exists on the map, we'll reset it using setData
         if (map.current.getSource('route')) {
-          map.getSource('route').setData(geojson);
+          map.current.getSource('route').setData(geojson);
         }
         // otherwise, we'll make a new request
         else {
@@ -295,7 +316,7 @@ const Map = () => {
   return (
     <div className='flex flex-col-reverse lg:flex-row flex-1'>
       {/* <Draggable handle=".handle"> */}
-      <div className='bg-zinc-500 w-full flex flex-col flex-1 lg:h-full lg:w-1/4 handle space-y-2 p-1 md:p-2'>
+      <div className='bg-zinc-500 w-full flex flex-col lg:h-full lg:w-[450px] space-y-2 p-1 md:p-2'>
         {/* Address Input */}
         <div className='flex justify-between items-center'>
           <input type='text'
@@ -309,7 +330,7 @@ const Map = () => {
         <div className='flex flex-col flex-1'>
           <div className='bg-zinc-600 shadow-lg rounded'>
             {
-              geoData.slice(0,3).map(item => (
+              geoData.slice(0, 3).map(item => (
                 <button className='text-start w-full text-lg text-lime-200 p-2 hover:bg-zinc-700' onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates, item)} key={item.id}>{item.place_name}</button>
               ))
             }
@@ -321,7 +342,7 @@ const Map = () => {
           </button>
 
           {/* Turn by Turn Directions */}
-          <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-lg rounded-md'>
+          <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-lg rounded-md mb-2'>
             {
               routeDirections.map((directionsObject, index) => (
                 <div className='w-full flex justify-between hover:bg-zinc-700 p-2 px-4'>
@@ -346,7 +367,7 @@ const Map = () => {
               </div>
             }
           </div>
-          <div className='w-full justify-evenly flex gap-2 overflow-x-scroll mt-auto'>
+          <div className='justify-between flex gap-2 mt-auto'>
             <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
             <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
             <BasemapButton layerParameter="navigation-day-v1" buttonText="Nav" img={dayNav} submitFunction={handleBasemapChange} />
@@ -357,7 +378,7 @@ const Map = () => {
       </div>
       {/* </Draggable> */}
       {/* Map */}
-      <div className='bg-blue-500 w-full h-full max-h-[450px]' ref={mapContainer}></div>
+      <div className='bg-blue-500 flex-1 h-full' ref={mapContainer}></div>
     </div >
   )
 
