@@ -275,6 +275,16 @@ const Map = () => {
     setGeoData([])
   }
 
+  // reset the map handler
+  const handleReset = () => {
+    setStart([]);
+    setEnd([]);
+    setGeoData([]);
+    setRouteDirections([]);
+    setRouteDistance([]);
+    setValue('')
+  }
+
   // api call to geocoder
   const getGeoCoder = (searchTerm) => {
     axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${searchTerm}.json?access_token=${mapboxgl.accessToken}`)
@@ -327,11 +337,11 @@ const Map = () => {
         map.current.setLayoutProperty(hideClusterCount, 'visibility', 'none');
 
         // create nodes for start and end on route.
-        let startMarker = new mapboxgl.Marker({color: 'green'})
+        let startMarker = new mapboxgl.Marker({ color: 'green' })
           .setLngLat(start)
           .addTo(map.current);
 
-        let endMarker = new mapboxgl.Marker({color: 'blue'})
+        let endMarker = new mapboxgl.Marker({ color: 'blue' })
           .setLngLat(end)
           .addTo(map.current);
 
@@ -374,9 +384,9 @@ const Map = () => {
   }
 
   return (
-    <div className='flex flex-col-reverse lg:flex-row flex-1'>
+    <main className='flex flex-col-reverse lg:flex-row flex-1'>
       {/* <Draggable handle=".handle"> */}
-      <div className='bg-zinc-500 w-full flex flex-col lg:h-full lg:w-[450px] space-y-2 p-1 md:p-2'>
+      <nav className='bg-zinc-500 w-full flex flex-col lg:h-full lg:w-[450px] space-y-2 p-1 md:p-2'>
         {/* Address Input */}
         <div className='flex justify-between items-center'>
           <input type='text'
@@ -426,18 +436,24 @@ const Map = () => {
               </div>
             }
           </div>
-          <div className='justify-between flex gap-2 mt-auto'>
-            <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
-            <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
-            <BasemapButton layerParameter="navigation-day-v1" buttonText="Nav" img={dayNav} submitFunction={handleBasemapChange} />
-            <BasemapButton layerParameter="navigation-night-v1" buttonText="Dark Nav" img={nightNav} submitFunction={handleBasemapChange} />
-            <BasemapButton layerParameter="streets-v12" buttonText="Default" img={defaultMapbox} submitFunction={handleBasemapChange} />
+          <div className='mt-auto'>
+            <button className='bg-zinc-300 w-full mb-2 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600 shadow-lg'
+              onClick={handleReset}>
+              Reset
+            </button>
+            <div className='justify-between flex gap-2'>
+              <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
+              <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
+              <BasemapButton layerParameter="navigation-day-v1" buttonText="Nav" img={dayNav} submitFunction={handleBasemapChange} />
+              <BasemapButton layerParameter="navigation-night-v1" buttonText="Dark Nav" img={nightNav} submitFunction={handleBasemapChange} />
+              <BasemapButton layerParameter="streets-v12" buttonText="Default" img={defaultMapbox} submitFunction={handleBasemapChange} />
+            </div>
           </div>
         </div>
-      </div>
+      </nav>
       {/* Map */}
       <div className='bg-blue-500 flex-1 h-full' ref={mapContainer}></div>
-    </div >
+    </main >
   )
 }
 
