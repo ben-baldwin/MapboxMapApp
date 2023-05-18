@@ -72,7 +72,7 @@ const MAP_LAYERS = {
     filter: ['!', ['has', 'point_count']],
     paint: {
       'circle-color': '#11b4da',
-      'circle-radius': 4,
+      'circle-radius': 6,
       'circle-stroke-width': 1,
       'circle-stroke-color': '#fff'
     }
@@ -106,9 +106,7 @@ const MAP_LAYERS = {
 const Map = () => {
   const mapContainer = useRef();
   const map = useRef();
-  const popupRef = useRef();
   const [campLayer, setCampLayer] = useState(true);
-  const [isOpen, setIsOpen] = useState(false);
   const [basemap, setBasemap] = useState(false);
   const [loaded, setLoaded] = useState(false);
   const [start, setStart] = useState([]);
@@ -139,24 +137,74 @@ const Map = () => {
 
   const addEventListeners = (e) => {
     // When a click event occurs on a feature in
-    // the unclustered-point layer, open a popup at
-    // the location of the feature, with
+    // the unclustered-point layer, open a popup at the location of the feature, with
     // description HTML from its properties.
     map.current.on('click', 'unclustered-point', (e) => {
       const properties = e.features[0].properties;
       // console.log(properties);
       const coordinates = e.features[0].geometry.coordinates.slice();
       setEnd(coordinates);
-      let description = '';
-
+      // build popup content
+      let popupContent = '';
       if ('name' in properties) {
-        description = properties.name;
+        popupContent += `<p><strong>Name:</strong> ${properties.name}</p>`;
+      }
+      else (popupContent += `<p><strong>Name:</strong> No Name Available</p>`);
+
+      if ('operator' in properties) {
+        popupContent += `<p><strong>Operator:</strong> ${properties.operator}</p>`
       }
 
+      if ('phone' in properties) {
+        popupContent += `<p><strong>Phone:</strong> ${properties.phone}</p>`
+      }
+
+      if ('tents' in properties) {
+        popupContent += `<p><strong>Tents:</strong> ${properties.tents}</p>`
+      }
+
+      if ('caravans' in properties) {
+        popupContent += `<p><strong>Caravans:</strong> ${properties.caravans}</p>`
+      }
+
+      if ('drinking_water' in properties) {
+        popupContent += `<p><strong>Drinking Water:</strong> ${properties.drinking_water}</p>`
+      }
+
+      if ('backcountry' in properties) {
+        popupContent += `<p><strong>Backcountry:</strong> ${properties.backcountry}</p>`
+      }
+
+      if ('fee' in properties) {
+        popupContent += `<p><strong>Fee:</strong> ${properties.fee}</p>`
+      }
+
+      if ('toilets' in properties) {
+        popupContent += `<p><strong>Toilets:</strong> ${properties.toilets}</p>`
+      }
+
+      if ('shower' in properties) {
+        popupContent += `<p><strong>Shower:</strong> ${properties.shower}</p>`
+      }
+      // instantiate a mapbox popup
       new mapboxgl.Popup()
         .setLngLat(coordinates)
-        .setHTML(description)
+        .setHTML(popupContent)
         .addTo(map.current)
+    });
+    // handle hover event for clustered points
+    map.current.on('mouseenter', 'clusters', () => {
+      map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'clusters', () => {
+      map.current.getCanvas().style.cursor = '';
+    });
+    // handle hover event for unclustered points
+    map.current.on('mouseenter', 'unclustered-point', () => {
+      map.current.getCanvas().style.cursor = 'pointer';
+    });
+    map.current.on('mouseleave', 'unclustered-point', () => {
+      map.current.getCanvas().style.cursor = '';
     });
 
     // inspect a cluster on click
@@ -178,12 +226,14 @@ const Map = () => {
     });
   }
 
+  // iterate through all sources and add to map
   const addSources = (sourcesIDs) => {
     sourcesIDs.forEach(sourceID => {
       map.current.addSource(sourceID, MAP_SOURCES[sourceID])
     })
   }
 
+  // iterate through all layers and add to map
   const addLayers = (layersIDs) => {
     layersIDs.forEach(layerID => {
       map.current.addLayer(MAP_LAYERS[layerID])
@@ -200,11 +250,7 @@ const Map = () => {
     }
   }, [campLayer]);
 
-  const handleLayerToggle = (e) => {
-    e.preventDefault();
-    setCampLayer(!campLayer);
-  }
-
+  // changes basemap
   const handleBasemapChange = (id) => {
     const selectedBasemap = id;
     setBasemap(selectedBasemap);
@@ -218,40 +264,38 @@ const Map = () => {
   const handleInputChange = (event, item) => {
     const searchTerm = event.target.value;
     setValue(searchTerm) //update the value state with the users input
-    console.log(searchTerm);
+    // console.log(searchTerm);
     getGeoCoder(searchTerm);
   }
 
+  // when geoCode button is selected, set those coordinates using setStart
   const handleGeoCodeSelection = (coordinates, item) => {
     setStart(coordinates)
     setValue(item.place_name)
     setGeoData([])
   }
 
-  const handleAccordion = () => {
-    setIsOpen(!isOpen)
-  }
-
+  // api call to geocoder
   const getGeoCoder = (searchTerm) => {
     axios.get(`https://api.mapbox.com/geocoding/v5/mapbox.places/${searchTerm}.json?access_token=${mapboxgl.accessToken}`)
       .then(response => {
         const { features } = response.data
         setGeoData(features);
-        console.log(geoData);
+        // console.log(geoData);
       })
       .catch(error => {
         console.log(error);
       });
   }
+
   const getNavigation = () => {
     axios.get(`https://api.mapbox.com/directions/v5/mapbox/driving/${start[0]},${start[1]};${end[0]},${end[1]}?steps=true&geometries=geojson&access_token=${mapboxgl.accessToken}`)
       .then(response => {
         setRouteDirections(response.data.routes[0].legs[0].steps)
         setRouteDistance(response.data.routes[0].distance)
         setRouteDuration(response.data.routes[0].duration)
-        const data = response.data.routes[0]
         const route = response.data.routes[0].geometry.coordinates;
-        console.log(route);
+        // console.log(route);
         const bounds = route.reduce(
           (bbox, coord) => {
             return [
@@ -261,19 +305,35 @@ const Map = () => {
           },
           [[Infinity, Infinity], [-Infinity, -Infinity]]
         );
-        console.log(bounds);
+        // console.log(bounds);
 
         // calculate center of the bounds
         const borderBounds = [
           (bounds[0][0] + bounds[1][0]) / 2, //longitude
           (bounds[0][1] + bounds[1][1]) / 2  //latitude
         ];
-        
+
         map.current.flyTo({
           center: borderBounds,
-          zoom: 8,
           essential: true //ensures smooth transition
         });
+
+        // Once a route is rendered, hide clusters, campsite nodes, and cluster count
+        let hideCampNodes = 'unclustered-point'
+        let hideClusters = 'clusters'
+        let hideClusterCount = 'cluster-count'
+        map.current.setLayoutProperty(hideCampNodes, 'visibility', 'none');
+        map.current.setLayoutProperty(hideClusters, 'visibility', 'none');
+        map.current.setLayoutProperty(hideClusterCount, 'visibility', 'none');
+
+        // create nodes for start and end on route.
+        let startMarker = new mapboxgl.Marker({color: 'green'})
+          .setLngLat(start)
+          .addTo(map.current);
+
+        let endMarker = new mapboxgl.Marker({color: 'blue'})
+          .setLngLat(end)
+          .addTo(map.current);
 
         const geojson = {
           type: 'Feature',
@@ -340,9 +400,8 @@ const Map = () => {
             onClick={getNavigation}>
             Get Directions
           </button>
-
           {/* Turn by Turn Directions */}
-          <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-lg rounded-md mb-2'>
+          <div className='bg-zinc-600 max-h-96 lg:max-h-[950px] overflow-y-scroll scrollbar-none shadow-lg rounded-md mb-2'>
             {
               routeDirections.map((directionsObject, index) => (
                 <div className='w-full flex justify-between hover:bg-zinc-700 p-2 px-4'>
@@ -376,97 +435,9 @@ const Map = () => {
           </div>
         </div>
       </div>
-      {/* </Draggable> */}
       {/* Map */}
       <div className='bg-blue-500 flex-1 h-full' ref={mapContainer}></div>
     </div >
-  )
-
-  return (
-    <div className='flex h-full w-full relative flex-1 z-10'>
-
-      {/* Map Layer Accordion */}
-
-      <div className='w-full h-full max-w-lg bg-zinc-700 shadow-xl p-4 z-10'>
-        <div className='bg-zinc-600 rounded-md shadow-md m-2 text-lime-200 text-lg'>
-          <div className='flex justify-between items-center px-2' onClick={handleAccordion}>
-            <p className='m-2'>Instructions</p>
-            <p>{isOpen ? '-' : '+'}</p>
-          </div>
-          {isOpen && (
-            <div className='m-2'>
-              <p>First, using the address bar below, type in your current location. It can be as specific as your address or as broad as your city. Once you have selected the correct starting destination, explore the map and utilize the many basemap layers provided to find a campsite that you would like to visit. Once you have found a campsite, click on the campsite node. Now that you have your starting point and destination, select the "Get Directions" button to view turn by turn directions to the campsite! </p>
-            </div>
-          )}
-        </div>
-        {/* Camp Sites toggle */}
-        <div className='p-2'>
-          <label className="relative inline-flex items-center mr-5 cursor-pointer">
-            <div className="w-11 h-6 bg-gray-200 rounded-full peer peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600">
-            </div>
-            <span className="ml-3 text-lg text-lime-200 select-none">Camp Sites</span>
-            <input type="checkbox" value="" onClick={handleLayerToggle} className="sr-only peer"></input>
-          </label>
-        </div>
-        <div className='flex flex-col p-2 gap-2 w-full max-w-lg'>
-          <input type='text'
-            className='rounded bg-lime-200 p-1 text-lg focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 placeholder-neutral-600'
-            placeholder='Address, City, POI'
-            onChange={handleInputChange}>
-          </input>
-          <div className='bg-zinc-600 shadow-md rounded-md'>
-            {
-              geoData.map(item => (
-                <button className='text-start w-full text-lg text-lime-200 p-2 hover:bg-zinc-700' onClick={(e) => handleGeoCodeSelection(item.geometry.coordinates)} key={item.id}>{item.place_name}</button>
-              ))
-            }
-          </div>
-          <button className='bg-gradient-to-r from-teal-200 to-lime-200 hover:bg-gradient-to-l hover:from-teal-200 hover:to-lime-200 focus:ring-4 focus:outline-none focus:ring-lime-200 dark:focus:ring-teal-700 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600'
-            onClick={getNavigation}>Get Directions
-          </button>
-          <div className='w-full max-h-16 bg-zinc-600 shadow-md rounded-md p-2'>
-            <div className='flex space-x-20 text-teal-200 text-lg'>
-              <FontAwesomeIcon icon={faCar} style={{ color: "#99f6e4", fontSize: '1.5em' }} />
-              <p>Time: {(routeDuration / 3600).toFixed(2)} hrs</p>
-              <p>Distance: {(routeDistance * 0.00062137).toFixed(2)} mi</p>
-            </div>
-          </div>
-          <div className='bg-zinc-600 max-h-96 overflow-y-scroll scrollbar-none shadow-md rounded-md'>
-            {
-              routeDirections.map((directionsObject, index) => (
-                <div className='w-full flex justify-between hover:bg-zinc-700 p-2 px-4'>
-                  <p className='text-lg text-lime-200' key={index}>{directionsObject.maneuver.instruction}</p>
-                  {
-                    ((directionsObject.distance * 3.28084).toFixed(2) === '0.00') ? null :
-                      ((directionsObject.distance * 0.00062137).toFixed(2) > .75) ?
-                        // distance in miles
-                        <p className='text-lg text-lime-200 min-w-max'>{(directionsObject.distance * 0.00062137).toFixed(2)} mi</p> :
-                        // distance in feet
-                        <p className='text-lg text-lime-200 min-w-max'>{(directionsObject.distance * 3.28084).toFixed(0)} ft</p>
-                  }
-                </div>
-              ))
-            }
-          </div>
-        </div>
-        {/* )} */}
-
-        {/* Basemap Selector' */}
-
-        <div className='w-full flex justify-between max-w-md absolute bottom-8 left-8 mb-4'>
-          <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
-          <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
-          <BasemapButton layerParameter="navigation-day-v1" buttonText="Day Nav" img={dayNav} submitFunction={handleBasemapChange} />
-          <BasemapButton layerParameter="navigation-night-v1" buttonText="Night Nav" img={nightNav} submitFunction={handleBasemapChange} />
-          <BasemapButton layerParameter="streets-v12" buttonText="Default" img={defaultMapbox} submitFunction={handleBasemapChange} />
-        </div>
-      </div>
-
-      {/* Map Component */}
-
-      <div ref={mapContainer} className="flex-1">
-      </div>
-    </div>
   )
 }
 
