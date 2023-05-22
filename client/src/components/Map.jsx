@@ -445,10 +445,10 @@ const Map = () => {
             }
           </div>
           <div className='mt-auto'>
-            <button className='bg-zinc-300 w-full mb-2 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600 shadow-lg'
+            {/* <button className='bg-zinc-300 w-full mb-2 rounded text-sm px-5 py-2.5 text-center font-semibold text-neutral-600 shadow-lg'
               onClick={handleReset}>
               Reset
-            </button>
+            </button> */}
             <div className='justify-between flex gap-2'>
               <BasemapButton layerParameter="satellite-streets-v12" buttonText="Satellite" img={satellite} submitFunction={handleBasemapChange} />
               <BasemapButton layerParameter="dark-v11" buttonText="Dark" img={darkImg} submitFunction={handleBasemapChange} />
