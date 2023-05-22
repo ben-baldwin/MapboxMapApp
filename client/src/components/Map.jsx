@@ -15,7 +15,7 @@ import { faCar } from '@fortawesome/free-solid-svg-icons';
 
 
 // make an env variable
-mapboxgl.accessToken = 'pk.eyJ1IjoiYmVuYmFsZHdpbjU1IiwiYSI6ImNsZ2pwbXJhcjBwZWozZnA0dWFkZ3YydGMifQ.27A8k4rZf87cluG99yfaGw';
+// mapboxgl.accessToken = 'pk.eyJ1IjoiYmVuYmFsZHdpbjU1IiwiYSI6ImNsZ2pwbXJhcjBwZWozZnA0dWFkZ3YydGMifQ.27A8k4rZf87cluG99yfaGw';
 
 const MAP_SOURCES = {
   campSites: {
@@ -119,20 +119,28 @@ const Map = () => {
 
   // Initialize the map when the component mounts
   useEffect(() => {
-    map.current = new mapboxgl.Map({
-      container: mapContainer.current,
-      style: 'mapbox://styles/mapbox/navigation-night-v1',
-      center: [-95.7129, 37.0902],
-      zoom: 4
-    });
-
-    // Render GeoJSON data as a map layer
-    map.current.on('style.load', () => {
-      addSources(['campSites']);
-      addLayers(['campSites', 'clusterCount', 'unclusteredPoint', 'point']);
-      addEventListeners();
-    })
-    setLoaded(true)
+// change route name to apiKey
+    axios.get('http://localhost:8000/data')
+      .then(response => {
+        const apiKey = response.data.apiKey;
+        console.log(response);
+        mapboxgl.accessToken = apiKey
+        
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: 'mapbox://styles/mapbox/navigation-night-v1',
+          center: [-95.7129, 37.0902],
+          zoom: 4
+        });
+        
+        // Render GeoJSON data as a map layer
+        map.current.on('style.load', () => {
+          addSources(['campSites']);
+          addLayers(['campSites', 'clusterCount', 'unclusteredPoint', 'point']);
+          addEventListeners();
+        })
+        setLoaded(true)
+      })
   }, []);
 
   const addEventListeners = (e) => {
