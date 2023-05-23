@@ -13,10 +13,6 @@ import satellite from '../assets/satellite.png'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faCar } from '@fortawesome/free-solid-svg-icons';
 
-
-// make an env variable
-// mapboxgl.accessToken = 'pk.eyJ1IjoiYmVuYmFsZHdpbjU1IiwiYSI6ImNsZ2pwbXJhcjBwZWozZnA0dWFkZ3YydGMifQ.27A8k4rZf87cluG99yfaGw';
-
 const MAP_SOURCES = {
   campSites: {
     type: 'geojson',
@@ -90,7 +86,6 @@ const MAP_LAYERS = {
             properties: {},
             geometry: {
               type: 'Point',
-              // coordinates: start
             }
           }
         ]
