@@ -118,7 +118,7 @@ const Map = () => {
     axios.get('http://localhost:8000/data')
       .then(response => {
         const apiKey = response.data.apiKey;
-        console.log(response);
+        // console.log(response);
         mapboxgl.accessToken = apiKey
         
         map.current = new mapboxgl.Map({
